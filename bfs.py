@@ -12,25 +12,6 @@ import resource
 
 
 
-# def __init__(self, method: str, initState: tuple):
-# 	super(Solver, self).__init__()
-# 	self.initState = initState
-
-
-# 	while True:
-# 		if method == 'bfs':
-#     		self.bfs()
-#         	break
-#     	if method == 'dfs':
-#         	self.dfs()
-#         	break
-#     	if method == 'ast':
-#         	self.ast()
-#         	break
-#     	break
-
-
-
 class Action(Enum):
     
     """
@@ -50,9 +31,9 @@ class Action(Enum):
 
 
 def valid_actions(tuple):
-    
-    # Returns a list of valid actions given a tuple and 0 node.
-    
+    """
+    Returns a list of valid actions given a tuple and 0 node.
+    """
     grid = np.array(tuple).reshape(3,-1)
     
     index = np.where(grid == 0)
@@ -60,13 +41,11 @@ def valid_actions(tuple):
     
     n, m = grid.shape[0] - 1, grid.shape[1] - 1
     x, y = int(index[0]),int(index[1])
-    #   print(m,n)
-    #   print(x,y)
+
     
     
 
-    	# check if the node is off the grid or it's an obstacle
-    
+    # check if the node is off the grid or it's an obstacle
     if x == 0:
         valid.remove(Action.UP)
     if x == n:
@@ -80,20 +59,28 @@ def valid_actions(tuple):
 
 
 def bfs(start,goal):
+    """
+    Returns a valid steps list by given the start and goal tuple. implement BFS algorithm.
+    """
 
-
-    
-    # Returns a valid steps list by given the start and goal tuple. implement BFS algorithm.
-    
     path = []
     depth = []
-    depth_path = []
+
+    # initialize variables
+    max_depth = 0 
+
     # initialize a Queue() object and add the start location to it:
     queue  = Queue()
     queue.put(start)
     #  initialize a set() object for visited list and add the start location to it
     visited = set()
     visited.add(start)
+
+    # initialize Queue() object for depth calculation
+    depth = Queue()
+    depth.put(0)
+
+
     # define an empty dictionary, where you'll record how you moved through the grid and a goal location,
     branch = {}
     found = False
@@ -103,6 +90,7 @@ def bfs(start,goal):
         # deque and store the explored node
         current_node = queue.get()
         visited.add(current_node)
+        dep = depth.get()
         
         
         # goal check
@@ -137,12 +125,18 @@ def bfs(start,goal):
                 if next_node not in visited:
                     visited.add(next_node)
                     queue.put(next_node)
+                    depth.put(dep+1)
                     branch[next_node] = (current_node, action)
+
+            if dep + 1 > max_depth:
+                max_depth = dep + 1
+
                     
                 
     
     if found:
-        notes = len(branch)
+
+        nodes = len(branch)
         
         # traceback to find the depth by using of the branch dictionary.
         n = goal
@@ -155,24 +149,25 @@ def bfs(start,goal):
         path.append(branch[n][1])
 
         
-    return path[::-1], notes, depth_path
-
-
-
-
+    return path[::-1],nodes,max_depth
 
 
 
 
 if __name__ == "__main__":
 
+    method_input = sys.argv[1]
 
-    start = (5,8,3,2,0,1,4,7,6)
+    start = tuple(list(map(int,sys.argv[2].split(','))))
+
+    # start = (5,8,3,2,0,1,4,7,6) 
     goal  = (0,1,2,3,4,5,6,7,8)
 
 
+
     t0=time.time()
-    path, node, depth = bfs(start,goal)
+    path,node,depth = bfs(start,goal)
+    # print(depth)
     t1=time.time()
 
 
@@ -189,7 +184,7 @@ if __name__ == "__main__":
     print("Cost Of Path: %d" % len(path))
     print("Notes Expended: %d" % node)
     print("Search Depth: %d" % len(path))
-    print("Max Search Depth:" %d )
+    print("Max Search Depth: %d" % depth)
     print("Max Ram Usage: %d " % usage)
     print("Running Time(in second): %e" % (t1-t0))
     print("Path To Goal: %r" % path_output)
