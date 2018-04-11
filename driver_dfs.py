@@ -9,6 +9,7 @@ from enum import Enum
 from queue import Queue
 import time
 import resource
+from collections import deque
 
 
 
@@ -32,7 +33,7 @@ class Action(Enum):
 
 def valid_actions(tuple):
     """
-    Returns a list of valid actions given a tuple and 0 node.
+    Returns a list of valid actions given a tuple including 0.
     """
     grid = np.array(tuple).reshape(3,-1)
     
@@ -58,7 +59,7 @@ def valid_actions(tuple):
 
 
 
-def bfs(start,goal):
+def dfs(start,goal):
     """
     Returns a valid steps list by given the start and goal tuple. implement BFS algorithm.
     """
@@ -69,16 +70,22 @@ def bfs(start,goal):
     # initialize variables
     max_depth = 0 
 
-    # initialize a Queue() object and add the start location to it:
-    queue  = Queue()
-    queue.put(start)
+    # frontier variables 
+    max_fringe_size = 0
+
+    # initialize a stack object and add the start location to it:
+
+    queue = deque()
+    queue.append(start)
+
     #  initialize a set() object for visited list and add the start location to it
     visited = set()
     visited.add(start)
 
-    # initialize Queue() object for depth calculation
-    depth = Queue()
-    depth.put(0)
+    # initialize stack object for depth calculation
+
+    depth = deque()
+    depth.append(0)
 
 
     # define an empty dictionary, where you'll record how you moved through the grid and a goal location,
@@ -86,11 +93,14 @@ def bfs(start,goal):
     found = False
     
     
-    while not queue.empty():
+    while queue:
         # deque and store the explored node
-        current_node = queue.get()
+        # current_node = queue.get()
+        current_node = queue.pop()
         visited.add(current_node)
-        dep = depth.get()
+        # dep = depth.get()
+        dep = depth.pop()
+
         
         
         # goal check
@@ -99,6 +109,7 @@ def bfs(start,goal):
             found = True
             break
         else:
+            count = 0
             for action in valid_actions(current_node):
                 # get movement indicator from actions list
                 da = action.delta
@@ -124,15 +135,24 @@ def bfs(start,goal):
                 # 3. Add how I got there to branch
                 if next_node not in visited:
                     visited.add(next_node)
-                    queue.put(next_node)
-                    depth.put(dep+1)
-                    branch[next_node] = (current_node, action)
-
-            if dep + 1 > max_depth:
-                max_depth = dep + 1
-
+                    # queue.put(next_node)
+                    queue.append(next_node)
+                    # depth.put(dep+1)
+                    depth.append(dep+1)
                     
-                
+                    branch[next_node] = (current_node, action)
+                    count += 1
+
+            fringe_size = len(queue)
+            if fringe_size > max_fringe_size:
+                max_fringe_size = fringe_size
+
+            if count > 0:
+                if dep + 1 > max_depth:
+                    max_depth = dep + 1
+
+
+    nodes = 0            
     
     if found:
 
@@ -140,7 +160,7 @@ def bfs(start,goal):
         
         # traceback to find the depth by using of the branch dictionary.
         n = goal
-#       print(branch[n][0])
+        # print(branch[n][0])
         while branch[n][0] != start:
             
             path.append(branch[n][1])
@@ -149,7 +169,7 @@ def bfs(start,goal):
         path.append(branch[n][1])
 
         
-    return path[::-1],nodes,max_depth
+    return path[::-1],nodes,max_depth,fringe_size
 
 
 
@@ -164,10 +184,8 @@ if __name__ == "__main__":
     goal  = (0,1,2,3,4,5,6,7,8)
 
 
-
     t0=time.time()
-    path,node,depth = bfs(start,goal)
-    # print(depth)
+    path,node,depth,fringe = dfs(start,goal)
     t1=time.time()
 
 
@@ -180,7 +198,7 @@ if __name__ == "__main__":
     # output of Max Ram Usage
     usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-
+    print("Fringe Size: %d" % fringe)
     print("Cost Of Path: %d" % len(path))
     print("Notes Expended: %d" % node)
     print("Search Depth: %d" % len(path))

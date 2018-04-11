@@ -27,8 +27,7 @@ class Action(Enum):
 	@property
 	def delta(self):
 		return (self.value[0], self.value[1])  
-	def cost(self):
-		return 1
+
 
 
 
@@ -67,10 +66,6 @@ def hueristic(start,goal):
 	goal_grid  = np.array(goal).reshape(3,-1)
 	sum = 0
 
-	# print(len(goal_grid[0]))
-	# print(len(goal_grid[1]))
-	# print(len(start_grid[0]))
-	# print(len(start_grid[1]))
 
 	for i in range(0,len(goal_grid[0])):
 		for j in range(0,len(goal_grid[1])):
@@ -131,9 +126,6 @@ def ast(hueristic,start,goal):
 			for action in valid_actions(current_node):
 			# get movement indicator from actions list
 				da = action.delta
-		
-				# get movement cost, each step = 1
-				cost = action.cost
 
 				# tuple -> grid transformation
 				grid = np.array(current_node).reshape(3,-1)
@@ -149,7 +141,6 @@ def ast(hueristic,start,goal):
 				next_node = tuple(grid.flatten().tolist())
 
 				# calculate the heuristic cost.
-				# new_cost = current_cost + cost + hueristic(next_node,goal) 
 				new_cost = current_cost + hueristic(next_node,goal)
 
 
@@ -170,8 +161,14 @@ def ast(hueristic,start,goal):
 
 			if dep + 1 > max_depth:
 				max_depth = dep + 1
+
+
+	path_cost = 0 
+	nodes = 0 
 					    
 	if found:
+
+		# path_cost = 0
 
 		nodes = len(branch)
 
@@ -191,8 +188,8 @@ def ast(hueristic,start,goal):
 		# path.append(branch[n][1])
 		path.append(branch[n][2])
 
-
 	return path[::-1],max_depth,nodes,path_cost
+	# return path[::-1],max_depth,path_cost
 
 
 
@@ -210,6 +207,7 @@ if __name__ == "__main__":
 
 	t0=time.time()
 	path,depth,node,path_cost = ast(hueristic,start,goal)
+	# path,depth,path_cost = ast(hueristic,start,goal)
     # print(depth)
 	t1=time.time()
 
@@ -224,8 +222,8 @@ if __name__ == "__main__":
 	usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 
-    # print("Cost Of Path: %d" % len(path))
-	print("Cost of Path: %d" % path_cost)
+	print("Cost Of Path: %d" % len(path))
+	print("Heuristic Cost: %d" % path_cost)
 	print("Notes Expended: %d" % node)
 	print("Search Depth: %d" % len(path))
 	print("Max Search Depth: %d" % depth)

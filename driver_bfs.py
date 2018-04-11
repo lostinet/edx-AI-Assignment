@@ -70,7 +70,7 @@ def bfs(start,goal):
     max_depth = 0 
 
     # initialize a Queue() object and add the start location to it:
-    queue  = Queue()
+    queue = Queue()
     queue.put(start)
     #  initialize a set() object for visited list and add the start location to it
     visited = set()
@@ -84,6 +84,8 @@ def bfs(start,goal):
     # define an empty dictionary, where you'll record how you moved through the grid and a goal location,
     branch = {}
     found = False
+
+    max_fringe_size = 0 
     
     
     while not queue.empty():
@@ -128,19 +130,22 @@ def bfs(start,goal):
                     depth.put(dep+1)
                     branch[next_node] = (current_node, action)
 
+            fringe_size = queue.qsize()
+            if fringe_size > max_fringe_size:
+                max_fringe_size = fringe_size
+
             if dep + 1 > max_depth:
                 max_depth = dep + 1
 
-                    
-                
-    
+    nodes = 0
+
     if found:
 
         nodes = len(branch)
         
         # traceback to find the depth by using of the branch dictionary.
         n = goal
-#       print(branch[n][0])
+        #print(branch[n][0])
         while branch[n][0] != start:
             
             path.append(branch[n][1])
@@ -148,10 +153,7 @@ def bfs(start,goal):
             
         path.append(branch[n][1])
 
-        
-    return path[::-1],nodes,max_depth
-
-
+    return path[::-1],nodes,max_depth,max_fringe_size
 
 
 if __name__ == "__main__":
@@ -166,7 +168,7 @@ if __name__ == "__main__":
 
 
     t0=time.time()
-    path,node,depth = bfs(start,goal)
+    path,node,depth,fringe = bfs(start,goal)
     # print(depth)
     t1=time.time()
 
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     # output of Max Ram Usage
     usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-
+    print("Fringe Size: %d" % fringe)
     print("Cost Of Path: %d" % len(path))
     print("Notes Expended: %d" % node)
     print("Search Depth: %d" % len(path))
